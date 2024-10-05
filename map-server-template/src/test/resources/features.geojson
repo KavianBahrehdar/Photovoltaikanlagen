@@ -1,0 +1,42 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": "1",
+      "properties": {
+        "type": "Indium",
+        "description": "steckt in Touchscreens der Tablets und Smartphones. Zum Beispiel aus China, Peru oder Kanada"
+      },
+      "geometry":  {
+         "type": "GeometryCollection",
+         "geometries": [{
+             "type": "Point",
+             "coordinates": [  -113.203125,
+          			58.99531118795094]
+         }, {
+             "type": "Polygon",
+             "coordinates": [[[-113.20466995239258,58.99581962326816],[-113.20466995239258,58.99458168068663],[-113.20158004760742,58.9946480001675],[-113.20153713226318,58.99590804603525],[-113.20466995239258,58.99581962326816]]]
+         }]
+		}
+    },
+	{
+      "type": "Feature",
+      "id": "2",
+      "properties": {
+        "type": "Gold",
+        "description": "...wird für die Kontakte der SIM-Karte und auch den Akku verwendet. Vorkommen gibt es bspw in China, Südafrika, Australien oder den USA."
+      },
+      "geometry":  {
+         "type": "GeometryCollection",
+         "geometries": [{
+             "type": "Point",
+             "coordinates": [133.9453125, -26.74561038219901]
+         }, {
+             "type": "Polygon",
+             "coordinates": [[[133.94528836011887,-26.745593615457185],[133.94528735429049,-26.745628645968548],[133.9453550800681,-26.745628945374595],[133.94535675644875,-26.7455900225836],[133.94528836011887,-26.745593615457185]]]
+         }]
+		}
+    }
+  ]
+}

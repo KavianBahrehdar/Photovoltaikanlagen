@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+ 
+    <title>Photovoltaikanlagen im Landkreis Deggendorf</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/maplibre-gl/dist/maplibre-gl.css" />
+    <script src="https://unpkg.com/maplibre-gl@4.0.0/dist/maplibre-gl.js"></script>
+    <link href='https://www.unpkg.com/@watergis/maplibre-gl-legend@latest/dist/maplibre-gl-legend.css' rel='stylesheet' />
+    <script src="https://www.unpkg.com/@watergis/maplibre-gl-legend@latest/dist/maplibre-gl-legend.umd.js"></script>
+    <script src="https://www.unpkg.com/@mapbox/mapbox-gl-draw@1.4.3/dist/mapbox-gl-draw.js"></script>
+    <link
+    rel="stylesheet"
+    href="https://www.unpkg.com/@mapbox/mapbox-gl-draw@1.4.3/dist/mapbox-gl-draw.css"/>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .map-container {
+            position: relative;
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        #map {
+            flex: 1;
+            transition: margin-left 0.5s;
+        }
+
+        .sidebar {
+            height: 100%;
+            width: 300px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: -300px;
+            background-color: #2c3e50;
+            overflow-x: hidden;
+            padding-top: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: left 0.5s;
+        }
+
+        .sidebar a {
+            padding: 10px 15px;
+            text-decoration: none;
+            font-size: 18px;
+            color: white;
+            display: block;
+            transition: 0.3s;
+        }
+
+        .sidebar a:hover {
+            background-color: #34495e;
+            color: #ecf0f1;
+        }
+
+        .open-btn {
+            font-size: 18px;
+            cursor: pointer;
+            background-color: #3498db;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            position: absolute;
+            top: 20px;
+            left: 10px;
+            z-index: 2;
+            transition: background-color 0.3s;
+        }
+
+        .open-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .open-btn.active {
+            display: none;
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .main-content {
+            transition: margin-left 0.5s;
+            overflow: hidden;
+            flex: 1;
+            display: flex;
+        }
+
+        .layer-control-container {
+            margin: 20px;
+        }
+
+        .layer-control-container label {
+            font-size: 18px;
+            color: white;
+        }
+
+        .select-container {
+            margin: 10px;
+        }
+
+        #locationSelect {
+            width: calc(100% - 30px);
+            padding: 8px;
+            font-size: 16px;
+            border: 3px solid #ccc;
+            border-radius: 10px;
+        }
+
+        .opacity-slider-container {
+            position: absolute;
+            left: 20px;
+            z-index: 1;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .opacity-slider-container label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .opacity-slider-container input[type="range"] {
+            width: 200px;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 10px;
+            text-align: center;
+            height: 60px;
+        }
+
+        .color-picker-container {
+            position: absolute;
+            left: 20px;
+            z-index: 1;
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .color-picker-container label {
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .color-picker-container input[type="color"] {
+            width: 100%;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 50px;
+            right: 10px;
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            max-width: 200px;
+            font-size: 14px;
+            box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
+            transition: left 0.5s;
+        }
+
+        .legend h2 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+
+        .legend-marker {
+            width: 12px;
+            height: 12px;
+            margin-right: 6px;
+            display: inline-block;
+        }
+
+        .legend-label {
+            display: inline-block;
+        }
+
+        .custom-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .custom-controls button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin-top: 8px;
+            cursor: pointer;
+            border-radius: 5px;
+            font-size: 14px;
+            outline: none;
+            transition: background-color 0.3s;
+        }
+
+        .custom-controls button:hover {
+            background-color: #2980b9;
+        }
+    
+        .basemap-icon {
+            display: inline-block;
+            margin-right: 10px;
+            cursor: pointer;
+        }
+    
+        .basemap-icon img {
+            width: 60px; 
+            height: 60px; 
+            border-radius: 5px;
+            border: 2px solid #ccc;
+            padding: 5px;
+            background-color: #f8f9fa;
+        }
+        .basemap-ctrl {
+            position: absolute;
+            bottom: 30px;
+            left: 3px;
+            z-index: 1;
+            border-radius: 5px;
+        }
+        .basemap-name {
+            margin-bottom: 5px;
+            font-size: 14px;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Photovoltaikanlagen im Landkreis Deggendorf</h1>
+    </header>
+    
+    <div class="map-container">
+        <div id="map" class="main-content">
+        </div>
+
+        <div id="sidebar" class="sidebar">
+            
+            <a href="javascript:void(0)" class="close-btn" onclick="closeNav()">&times; Close</a>
+            <div class="select-container">
+                <select id="locationSelect">
+                    <option value="">Ort auswählen...</option>
+                    <option value="Aholming">Aholming</option>
+                    <option value="AuÃŸernzell">Außernzell</option>
+                    <option value="Bernried">Bernried</option>
+                    <option value="Buchhofen">Buchhofen</option>
+                    <option value="Deggendorf">Deggendorf</option>
+                    <option value="Grafling">Grafling</option>
+                    <option value="Grattersdorf">Grattersdorf</option>
+                    <option value="Hengersberg">Hengersberg</option>
+                    <option value="Hunding">Hunding</option>
+                    <option value="Iggensbach">Iggensbach</option>
+                    <option value="KÃ¼nzing">Künzing</option>
+                    <option value="Lalling">Lalling</option>
+                    <option value="Metten">Metten</option>
+                    <option value="Moos">Moos</option>
+                    <option value="OberpÃ¶ring">Oberpöring</option>
+                    <option value="Osterhofen">Osterhofen</option>
+                    <option value="Otzing">Otzing</option>
+                    <option value="Plattling">Plattling</option>
+                    <option value="SchÃ¶llnach">Schällnach</option>
+                    <option value="Schaufling">Schaufling</option>
+                    <option value="Stephansposching">Stephansposching</option>
+                    <option value="Wallerfing">Wallerfing</option>
+                    <option value="Winzer">Winzer</option>
+                </select>
+            </div>
+            <div class="layer-control-container" id="layerControl" style="color: white;">
+                <label><input type="checkbox" id="toggleLayer0" class="layer-toggle" checked> Solar Wrong Coordinates</label>
+                <br>
+                <label><input type="checkbox" id="toggleLayer1" class="layer-toggle" checked> Solar Layer</label>
+                <br>
+                <label><input type="checkbox" id="toggleLayer2" class="layer-toggle"checked> Solar all Points</label>
+                <br>
+                <label><input type="checkbox" id="toggleLayer3" class="layer-toggle"checked> Deggendorf Polygon</label>
+                <br>
+                <label><input type="checkbox" id="toggleLayer4" class="layer-toggle"checked> Deggendorf Hexagon</label>
+                <br>
+                <label><input type="checkbox" id="toggleLayer5" class="layer-toggle" checked> Point Heatmap</label>
+                <br>
+                <label><input type="checkbox" id="toggleLayer6" class="layer-toggle" checked> Point Cluster</label>
+            </div>
+
+            <div class="opacity-slider-container" style="top: 250px;">
+                <label for="opacitySlider1">Solar Layer Opacity:</label>
+                <input type="range" id="opacitySlider1" min="0" max="1" step="0.1" value="1">
+            </div>
+            <div class="color-picker-container" style="top: 320px;">
+                <label for="colorPicker1">Solar Layer Color:</label>
+                <input type="color" id="colorPicker1" value="black">
+            </div>
+
+            <div class="opacity-slider-container"style="top: 400px;">
+                <label for="opacitySlider2">Sollar all Layer Opacity:</label>
+                <input type="range" id="opacitySlider2" min="0" max="1" step="0.1" value="1">
+            </div>
+            <div class="color-picker-container"style="top: 470px;">
+                <label for="colorPicker2">Sollar all Layer Color:</label>
+                <input type="color" id="colorPicker2" value="#0000ff">
+            </div>
+
+            <div class="opacity-slider-container"style="top: 550px;">
+                <label for="opacitySlider3">Deggendorf Polygon Opacity:</label>
+                <input type="range" id="opacitySlider3" min="0" max="1" step="0.1" value="1">
+            </div>
+            <div class="color-picker-container"style="top: 620px;">
+                <label for="colorPicker3">Deggendorf Polygon Color:</label>
+                <input type="color" id="colorPicker3" value="#008888">
+            </div>
+
+            <div class="opacity-slider-container"style="top: 700px;">
+                <label for="opacitySlider4">Deggendorf Hexagon Opacity:</label>
+                <input type="range" id="opacitySlider4" min="0" max="1" step="0.1" value="1">
+            </div>
+            <div class="color-picker-container"style="top: 770px;">
+                <label for="colorPicker4">Deggendorf Hexagon Color:</label>
+                <input type="color" id="colorPicker4" value="#008888">
+            </div>
+
+            <div class="opacity-slider-container"style="top: 850px;">
+                <label for="opacitySlider5">Point Heatmap Opacity:</label>
+                <input type="range" id="opacitySlider5" min="0" max="1" step="0.1" value="1">
+            </div>
+
+            <div class="opacity-slider-container"style="top: 930px;">
+                <label for="opacitySlider6">Point Cluster Opacity:</label>
+                <input type="range" id="opacitySlider6" min="0" max="1" step="0.1" value="1">
+            </div>
+            <div class="color-picker-container"style="top: 1000px;">
+                <label for="colorPicker6">Point Cluster Color:</label>
+                <input type="color" id="colorPicker6" value="#F1F075">
+            </div>
+        </div>
+    </div>
+
+    <button class="open-btn" onclick="openNav()">☰ Open LayerControl</button>
+    <div class="legend">
+        <h2>Legende</h2>
+        <br>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendWrongSolar" style="background-color: red; border-radius: 50%;"></div>
+            <div class="legend-label">Photovoltaikanlagen mit falschen Koordinaten</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendSolarLayer" style="background-color: black; border-radius: 50%;"></div>
+            <div class="legend-label">Photovoltaikanlagen Gemeinden</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendSolarAllLayer" style="background-color: #0000ff; border-radius: 50%;"></div>
+            <div class="legend-label">Photovoltaikanlagen Deggendorf</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendDeggendorfPolygon" style="background-color: #088;"></div>
+            <div class="legend-label">Deggendorf Polygon</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendDeggendorfHexagon" style="background-color: #008888;"></div>
+            <div class="legend-label">Deggendorf Hexagon</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendHeatmap" style="background-color: #883000;"></div>
+            <div class="legend-label">Deggendorf Heatmap</div>
+        </div>
+        <div class="legend-item">
+            <div class="legend-marker" id="legendCluster" style="background-color: #F1F075;border-radius: 50%;"></div>
+            <div class="legend-label">Deggendorf Cluster</div>
+        </div>
+    </div>
+    <div class="custom-controls" style="top: 360px;">
+        <button id="toggle2D">2D</button>
+    </div>
+    <div class="custom-controls"style="top: 320px;">
+        <button id="toggle3D">3D</button>
+    </div>
+    <div id="basemapToggle" class="basemap-ctrl">
+        <div class="basemap-icon" id="streets">
+            <!-- <div class="basemap-name">Streets</div> -->
+            <img src="https://cloud.maptiler.com/static/img/maps/streets-v2.png?t=1713275643" alt="Streets">
+        </div>
+        <div class="basemap-icon" id="satellite">
+            <!-- <div class="basemap-name">Satellite</div> -->
+            <img src="https://cloud.maptiler.com/static/img/maps/satellite.png?t=1713275643" alt="Satellite">
+        </div>
+        <div class="basemap-icon" id="openstreetmap">
+            <!-- <div class="basemap-name">OpenStreetmap</div> -->
+            <img src="https://cloud.maptiler.com/static/img/maps/openstreetmap.png?t=1713275643" alt="OpenStreetMap">
+        </div>
+        <div class="basemap-icon" id="basic">
+            <!-- <div class="basemap-name">BasicMap</div> -->
+            <img src="https://cloud.maptiler.com/static/img/maps/basic-v2.png?t=1713275643" alt="BasicMaps">
+        </div>
+    </div>
+    <script>
+
+        
+        function openNav() {
+            document.getElementById("sidebar").style.left = "0";
+            document.getElementById("map").style.marginLeft = "300px";
+            document.querySelector(".open-btn").classList.add("active");
+            document.getElementById("basemapToggle").style.left="300px";
+        }
+
+        function closeNav() {
+            document.getElementById("sidebar").style.left = "-300px";
+            document.getElementById("map").style.marginLeft = "0";
+            document.querySelector(".open-btn").classList.remove("active");
+            document.getElementById("basemapToggle").style.left="3px";
+        }
+        
+        function updateLegendColor(colorPickerId, legendMarkerId) {
+            const colorPicker = document.getElementById(colorPickerId);
+            const legendMarker = document.getElementById(legendMarkerId);
+            colorPicker.addEventListener('input', function () {
+                legendMarker.style.backgroundColor = colorPicker.value;
+            });
+        }
+
+        // Initialize legend color updates
+        updateLegendColor('colorPicker1', 'legendSolarLayer');
+        updateLegendColor('colorPicker2', 'legendSolarAllLayer');
+        updateLegendColor('colorPicker3', 'legendDeggendorfPolygon');
+        updateLegendColor('colorPicker4', 'legendDeggendorfHexagon');
+        updateLegendColor('colorPicker6', 'legendCluster');
+        
+    </script>
+
+    <script src="./index.js">
+
+    </script>
+</body>
+
+</html>

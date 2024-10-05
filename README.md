@@ -19,3 +19,5 @@ das Java Projekt auf PostgreSQL Verzeichnis ist dazu zuständig, die Geojson Dat
 Das Java Projekt auf map-server-template ist dazu zuständig, die Server zu starten. (Sehen Sie für die Implementierung das FeatureCollectionsController.java)
 
 Für Die Implementierung des Client-Seite navigieren Sie dann auf map-client-template und sehen Sie intex.ts und intex.html
+
+![image](https://github.com/user-attachments/assets/552fcf7e-2562-4610-b351-71477a6fc377)

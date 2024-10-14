@@ -1,8 +1,5 @@
 # Geoinformatik2
 
-# Bahrehdar, Kavian, 22102523 
-# Yazdekhasti, Shakiba, 22102528
-
 ## Erste Schtitte
 
 um das Projekt nach dem Klonen starten zu können, müssen Sie auf map-client-template navigieren und mit `npm run start` die ClientServer starten.

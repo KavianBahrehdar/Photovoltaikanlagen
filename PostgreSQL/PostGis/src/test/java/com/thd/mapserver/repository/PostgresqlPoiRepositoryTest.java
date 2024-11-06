@@ -30,7 +30,7 @@ public class PostgresqlPoiRepositoryTest {
 		String jsonData = new String(Files.readAllBytes(Paths.get("src/main/resources/GeoJSON_with_ids.geojson")));
 		JSONObject geoJson = new JSONObject(jsonData);
 		JSONArray features = geoJson.getJSONArray("features");
-		final var connectionString = "jdbc:postgresql://localhost:5432/Geoinformatik2?currentSchema=osm&user=postgres&password=@Kavianbrd78";
+		final var connectionString = "jdbc:postgresql://localhost:5432/Geoinformatik2?currentSchema=osm&user=postgres&password=******";
 		final var repository = new PostgresqlPoiRepository(connectionString);
 		for (int i = 0; i < features.length(); i++) {
 			JSONObject feature = features.getJSONObject(i);
